@@ -85,6 +85,45 @@ class ShowCategoryView(View):
             context_dict['query'] = query
         
         return render(request, 'rango/category.html', context_dict)
+    
+class ShowArticleView(View):
+
+    def create_context_dict(self, article_title_slug):
+
+        context_dict = {}
+
+        try:
+
+            article = Article.objects.get(slug=article_title_slug)
+
+            context_dict['article'] = article
+
+        except Article.DoesNotExist:
+
+            context_dict['article'] = None
+        
+        return context_dict
+
+    def get(self, request, article_title_slug):
+
+        context_dict = self.create_context_dict(article_title_slug)
+
+        return render(request, 'rango/article.html', context_dict)
+    
+    @method_decorator(login_required)
+    def post(self, request, article_title_slug):
+
+        context_dict = self.create_context_dict(article_title_slug)
+
+        query = request.POST['query'].strip()
+
+        if query:
+
+            context_dict['result_list'] = run_query(query)
+
+            context_dict['query'] = query
+        
+        return render(request, 'rango/article.html', context_dict)    
 
 class AddCategoryView(View):
 
@@ -159,6 +198,8 @@ class AddArticleView(View):
             article.category = category
 
             article.views = 0
+
+            article.likes = 0
 
             article.save()
 
