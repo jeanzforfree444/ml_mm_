@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from rango.models import Category, Article, UserProfile
+from rango.models import Category, Article, UserProfile, Comment
 from rango.forms import CategoryForm, ArticleForm, UserProfileForm
 from datetime import datetime
 from rango.bing_search import run_query
@@ -24,6 +24,10 @@ class IndexView(View):
         context_dict['categories'] = category_list
 
         context_dict['articles'] = article_list
+        
+        comments = Comment.objects.order_by('-date')[:5]
+
+        context_dict['comments'] = comments
         
         visitor_cookie_handler(request)
 
@@ -88,11 +92,15 @@ class ShowCategoryView(View):
     
 class ShowArticleView(View):
 
-    def create_context_dict(self, article_title_slug):
+    def create_context_dict(self, category_name_slug, article_title_slug):
 
         context_dict = {}
 
         try:
+
+            category = Category.objects.get(slug=category_name_slug)
+
+            context_dict['category'] = category
 
             article = Article.objects.get(slug=article_title_slug)
 
@@ -104,16 +112,16 @@ class ShowArticleView(View):
         
         return context_dict
 
-    def get(self, request, article_title_slug):
+    def get(self, request, category_name_slug, article_title_slug):
 
-        context_dict = self.create_context_dict(article_title_slug)
+        context_dict = self.create_context_dict(category_name_slug, article_title_slug)
 
         return render(request, 'rango/article.html', context_dict)
     
     @method_decorator(login_required)
-    def post(self, request, article_title_slug):
+    def post(self, request, category_name_slug, article_title_slug):
 
-        context_dict = self.create_context_dict(article_title_slug)
+        context_dict = self.create_context_dict(category_name_slug, article_title_slug)
 
         query = request.POST['query'].strip()
 
@@ -193,7 +201,7 @@ class AddArticleView(View):
         
         if form.is_valid():
 
-            article = form.save(commit=False)
+            article = form.save(commit=True)
 
             article.category = category
 
@@ -283,7 +291,7 @@ class ProfileView(View):
         
         user_profile = UserProfile.objects.get_or_create(user=user)[0]
     
-        form = UserProfileForm({'website': user_profile.website, 'picture': user_profile.picture})
+        form = UserProfileForm({'website': user_profile.website, 'profile_picture': user_profile.profile_picture})
         
         return (user, user_profile, form)
     
@@ -393,6 +401,31 @@ class LikeCategoryView(View):
 
         return HttpResponse(category.likes)
     
+class LikeArticleView(View):
+
+    @method_decorator(login_required)
+    def get(self, request):
+
+        article_id = request.GET['article_id']
+
+        try:
+
+            article = Article.objects.get(id=int(article_id))
+
+        except Article.DoesNotExist:
+
+            return HttpResponse(-1)
+        
+        except ValueError:
+
+            return HttpResponse(-1)
+        
+        article.likes = article.likes + 1
+
+        article.save()
+
+        return HttpResponse(article.likes)
+    
 def get_category_list(max_results=0, starts_with=''):
 
     category_list = []
@@ -429,31 +462,14 @@ class CategorySuggestionView(View):
         
         return render(request, 'rango/categories.html', {'categories': category_list})
     
-class SearchAddArticleView(View):
+class PrivacyView(View):
 
-    @method_decorator(login_required)
     def get(self, request):
 
-        category_id = request.GET['category_id']
+        return render(request, 'rango/privacy.html')
+    
+class TermsView(View):  
 
-        title = request.GET['title']
+    def get(self, request):
 
-        url = request.GET['url']
-
-        try:
-
-            category = Category.objects.get(id=int(category_id))
-
-        except Category.DoesNotExist:
-
-            return HttpResponse("Error - category not found.")
-        
-        except ValueError:
-
-            return HttpResponse("Error - bad category ID.")
-        
-        p = Article.objects.get_or_create(category=category, title=title, url=url)
-
-        articles = Article.objects.filter(category=category).order_by('-views')
-
-        return render(request, 'rango/article_listing.html', {'articles': articles})
+        return render(request, 'rango/terms.html')

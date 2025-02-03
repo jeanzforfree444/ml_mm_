@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Home
+{% endblock %}
+
+{% block body_block %}
+    <div class="jumbotron p-4">
+        <div class="container">
+            <h1 class="jumbotron-heading">Home</h1>
+            <div>
+                <h2 class="h2">
+                {% if user.is_authenticated %}
+                    Hello, {{ user.username }}!
+                {% else %}
+                    Hello! If you haven't already, please <a href="{% url 'registration_register' %}">register</a> or <a href="{% url 'auth_login' %}">login</a>.
+                {% endif %}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <h2>Most Liked Categories</h2>
+                        <p class="card-text">
+                        {% if categories %}
+                        <ul class="list-group">
+                        {% for category in categories %}
+                            <li class="list-group-item">
+                                <a href="{% url 'rango:show_category' category.slug %}">{{ category.name }}</a>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                        {% else %}
+                        <strong>There are no categories present.</strong>
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <h2>Most Viewed Articles</h2>
+                        <p class="card-text">
+                        {% if articles %}
+                        <ul class="list-group">
+                        {% for article in articles %}
+                            <li class="list-group-item">
+                                <a href="{% url 'rango:goto' %}?article_id={{ article.id }}">{{ article.title }}</a>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                        {% else %}
+                        <strong>There are no articles present.</strong>
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <h2>Latest Comments</h2>
+                        <p class="card-text">
+                        {% if comments %}
+                        <ul class="list-group">
+                        {% for comment in comments %}
+                            <li class="list-group-item">
+                                <strong>{{ comment.user.username }}:</strong> {{ comment.content }} - <a href="{% url 'rango:show_article' comment.article.category.slug comment.article.slug %}">{{ comment.article.title }}</a>
+                                <br>
+                                <small>Posted on {{ comment.date }}</small>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                        {% else %}
+                        <strong>There are no comments present.</strong>
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ {% endblock %}

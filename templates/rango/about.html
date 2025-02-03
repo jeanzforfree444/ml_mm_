@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    About Us
+{% endblock %}
+
+{% block body_block %}
+    <div class="jumbotron p-4">
+        <div class="container">
+            <h1 class="jumbotron-heading">About Us</h1>
+            <div>
+                <h2 class="h2">
+                    All about the people behind <strong>my love, my mind</strong>.
+                </h2>
+            This page has been put created by our founder, <strong>Aaron Hughes</strong>.<br /><br />
+            
+            <p>Visits: {{ visits }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <h2>Our Team</h2>
+                        <p class="card-text">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <a href="{% url 'rango:profile' 'aaronhxx_1' %}">
+                                        <img src="{{ user_profile.profile_picture.url }}" alt="Aaron Hughes" class="img-thumbnail" width="50" height="50">
+                                        Aaron Hughes
+                                    </a> - Founder/Editor
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{% url 'rango:profile' 'jsmith143' %}">
+                                        <img src="{{ user_profile.profile_picture.url }}" alt="John Smith" class="img-thumbnail" width="50" height="50">
+                                        John Smith
+                                    </a> - Developer
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{% url 'rango:profile' 'janebirkin4life' %}">
+                                        <img src="{{ user_profile.profile_picture.url }}" alt="Jane Doe" class="img-thumbnail" width="50" height="50">
+                                        Jane Doe
+                                    </a> - Designer
+                                </li>
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

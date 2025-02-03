@@ -1,5 +1,5 @@
 from django import forms
-from rango.models import Article, Category, UserProfile
+from rango.models import Article, Category, UserProfile, Comment
 from django.contrib.auth.models import User
 
 class CategoryForm(forms.ModelForm):
@@ -22,15 +22,15 @@ class ArticleForm(forms.ModelForm):
 
     title = forms.CharField(max_length=Article.TITLE_MAX_LENGTH, help_text="Please enter the title of the page:")
 
-    url = forms.URLField(max_length=Article.URL_MAX_LENGTH, help_text="Please enter the URL of the page:")
-
-    content = forms.CharField(max_length=Article.CONTENT_MAX_LENGTH, help_text="Please enter the content of the article:")
+    content = forms.CharField(widget=forms.Textarea(attrs={'rows': 10, 'cols': 80}), max_length=Article.CONTENT_MAX_LENGTH, help_text="Please enter the content of the article:")
 
     article_picture = forms.ImageField(required=True, help_text="Please upload an image for the article:")
 
     views = forms.IntegerField(widget=forms.HiddenInput(), initial=0)
 
     likes = forms.IntegerField(widget=forms.HiddenInput(), initial=0)
+
+    last_visit = forms.DateTimeField(widget=forms.HiddenInput(), required=False)
 
     slug = forms.CharField(widget=forms.HiddenInput(), required=False)
 
@@ -39,20 +39,6 @@ class ArticleForm(forms.ModelForm):
         model = Article
 
         exclude = ('category',)
-    
-    def clean(self):
-
-        cleaned_data = self.cleaned_data
-
-        url = cleaned_data.get('url')
-
-        if url and not url.startswith('http://'):
-
-            url = f'http://{url}'
-
-            cleaned_data['url'] = url
-        
-        return cleaned_data
     
 class UserForm(forms.ModelForm):
 
@@ -66,8 +52,20 @@ class UserForm(forms.ModelForm):
 
 class UserProfileForm(forms.ModelForm):
 
+    is_editor = forms.BooleanField(widget=forms.HiddenInput(), required=False)
+
     class Meta:
 
         model = UserProfile
         
-        fields = ('website', 'profile_picture',)
+        fields = ('website', 'profile_picture', 'is_editor',)
+
+class CommentForm(forms.ModelForm):
+
+    content = forms.CharField(widget=forms.Textarea(attrs={'rows': 5, 'cols': 80}), max_length=Comment.CONTENT_MAX_LENGTH, help_text="Please enter your comment:")
+
+    class Meta:
+
+        model = Comment
+
+        exclude = ('article', 'user', 'date',)

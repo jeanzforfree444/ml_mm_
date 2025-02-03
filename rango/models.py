@@ -33,15 +33,11 @@ class Article(models.Model):
 
     TITLE_MAX_LENGTH = 500
 
-    URL_MAX_LENGTH = 200
-
     CONTENT_MAX_LENGTH = 20000
 
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     title = models.CharField(max_length=TITLE_MAX_LENGTH)
-
-    url = models.URLField()
 
     content = models.CharField(max_length=CONTENT_MAX_LENGTH)
 
@@ -79,6 +75,24 @@ class UserProfile(models.Model):
 
     profile_picture = models.ImageField(upload_to='profile_images', blank=True)
 
+    is_editor = models.BooleanField(default=False)
+
     def __str__(self):
 
         return self.user.username
+    
+class Comment(models.Model):
+
+    CONTENT_MAX_LENGTH = 2000
+
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    content = models.CharField(max_length=CONTENT_MAX_LENGTH)
+
+    date = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+
+        return self.content

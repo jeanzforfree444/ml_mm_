@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    {% if article %}
+        {{ article.title }}
+    {% else %}
+        Unknown Article
+    {% endif %}
+{% endblock %}
+
+{% block body_block %}
+    {% if article %}
+    <div class="jumbotron p-4">
+        <div class="container">
+            <h1 class="jumbotron-heading">{{ article.title }}</h1><br />
+
+            <div>
+                <strong id="like_count">{{ article.likes }}</strong> likes
+                {% if user.is_authenticated %}
+                <button id="like_btn" class="btn btn-primary btn-sm" data-articleid="{{ article.id }}" type="button">
+                    <span data-feather="thumbs-up"></span> Like Article
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="row">
+            <p style="word-wrap: break-word;">{{ article.content }}</p>
+        </div>
+    </div>
+    {% else %}
+    <strong>No article found.</strong><br /><br />
+    {% endif %}
+{% endblock %}
