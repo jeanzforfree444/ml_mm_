@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Statistics
+{% endblock %}
+
+{% block body_block %}
+    <div class="jumbotron p-4">
+        <div class="container">
+            <h1 class="jumbotron-heading">Statistics</h1>
+            <div>
+                <h3 class="h3">Overview of our platform's statistics</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <h2>Statistics</h2>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <strong>Total Categories:</strong> {{ total_cats }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Total Articles:</strong> {{ total_articles }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Total Comments:</strong> {{ total_comments }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Total Users:</strong> {{ total_users }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Total Likes for All Articles:</strong> {{ total_likes }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Total Views for All Articles:</strong> {{ total_views }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><br />
+
+    <div>
+        <h3>Categories</h3><br />
+        <ul class="list-group">
+            {% for category, stats in category_stats.items %}
+                <li class="list-group-item">
+                    <strong>{{ category }}:</strong>
+                    Likes: {{ stats.likes }} | Views: {{ stats.views }}
+                </li>
+            {% endfor %}
+        </ul>
+    </div><br />
+
+    <div>
+        <h3>Share of Likes and Views</h3><br />
+        <div style="display: flex; justify-content: center; align-items: center; width: 100%; height: 600px;">
+            <canvas id="categoryChart" width="600" height="600"></canvas>
+        </div>        
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var ctx = document.getElementById('categoryChart').getContext('2d');
+    
+            var categoryLikes = {{ category_likes|safe }};
+            var categoryViews = {{ category_views|safe }};
+            var categoryNames = {{ category_names|safe }};
+    
+            var categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryNames,
+                    datasets: [
+                        {
+                            label: 'Views',
+                            data: categoryViews,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ],
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Likes',
+                            data: categoryLikes,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.3)',
+                                'rgba(54, 162, 235, 0.3)',
+                                'rgba(255, 206, 86, 0.3)',
+                                'rgba(75, 192, 192, 0.3)',
+                                'rgba(153, 102, 255, 0.3)',
+                                'rgba(255, 159, 64, 0.3)'
+                            ],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

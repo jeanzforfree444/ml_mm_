@@ -15,10 +15,24 @@
     {% if article %}
     <div class="jumbotron p-4">
         <div class="container">
-            <h1 class="jumbotron-heading">{{ article.title }}</h1><br />
+            <h1 class="jumbotron-heading">{{ article.title|safe }}</h1><br />
+
+            <p>
+                by <a href="{% url 'rango:profile' article.author.username %}">
+                    {% if article.author.userprofile.first_name and article.author.userprofile.last_name %}
+                        {{ article.author.userprofile.first_name }} {{ article.author.userprofile.last_name }}
+                    {% else %}
+                        {{ article.author.username }}
+                    {% endif %}
+                </a>
+            </p>
+
+            <p>
+                {{ article.summary|safe }}
+            </p>
 
             <div>
-                <strong id="like_count">{{ article.likes }}</strong> likes
+                <strong id="view_count">{{ article.views }}</strong> views <strong id="like_count">{{ article.likes }}</strong> likes
                 {% if user.is_authenticated %}
                 <button id="like_btn" class="btn btn-primary btn-sm" data-articleid="{{ article.id }}" type="button">
                     <span data-feather="thumbs-up"></span> Like Article
@@ -27,13 +41,81 @@
             </div>
         </div>
     </div>
+
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="container">
+        {% if article.article_picture %}
+        <img src="{{ MEDIA_URL }}{{ article.article_picture }}" class="img-fluid" alt="Article Picture"><br /><br />
+        {% endif %}
+    </div>
     
     <div class="container">
         <div class="row">
-            <p style="word-wrap: break-word;">{{ article.content }}</p>
+            <p style="word-wrap: break-word;">{{ article.content|safe }}</p>
         </div>
     </div>
+
+    <div class="container">
+        <h3>Comments</h3>
+        {% if comments %}
+            <ul class="list-group">
+                {% for comment in comments %}
+                    <li class="list-group-item">
+                        <strong>{{ comment.user.username }}</strong> 
+                        <span class="text-muted">on {{ comment.date }}</span>
+                        <p>{{ comment.content }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No comments yet. Be the first to comment!</p>
+        {% endif %}
+    </div>
+
+    {% if user.is_authenticated %}
+        <div class="container mt-4">
+            <h3>Add a Comment</h3>
+            <form method="post">
+                {% csrf_token %}
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                {% for field in form.visible_fields %}
+                    {{ field.errors }}
+                    {{ field.help_text }}<br />
+                    {{ field }}<br /><br />
+                {% endfor %}
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <span data-feather="edit-3"></span> Post Comment
+                </button><br />
+            </form>
+        </div>
     {% else %}
-    <strong>No article found.</strong><br /><br />
+        <p><a href="{% url 'auth_login' %}">Login</a> to add a comment.</p>
     {% endif %}
+    {% else %}
+    <div class="jumbotron p-4">
+        <div class="container">
+            <h1 class="jumbotron-heading">Article Not Found</h1>
+            <div>
+                <h3 class="h3">
+                    Sorry, please search for the article again.
+                </h3>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <br />
+    <p>
+        <a href="{% url 'rango:show_category' article.category.slug %}">Back to {{ article.category.name }}</a>
+    </p>    
 {% endblock %}

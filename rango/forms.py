@@ -6,6 +6,8 @@ class CategoryForm(forms.ModelForm):
 
     name = forms.CharField(max_length=Category.NAME_MAX_LENGTH, help_text="Please enter the category name:")
 
+    description = forms.CharField(max_length=Category.DESCRIPTION_MAX_LENGTH, help_text="Please enter the category description:")
+
     views = forms.IntegerField(widget=forms.HiddenInput(), initial=0)
 
     likes = forms.IntegerField(widget=forms.HiddenInput(), initial=0)
@@ -16,11 +18,13 @@ class CategoryForm(forms.ModelForm):
 
         model = Category
 
-        fields = ('name',)
+        fields = ('name', 'description',)
 
 class ArticleForm(forms.ModelForm):
 
-    title = forms.CharField(max_length=Article.TITLE_MAX_LENGTH, help_text="Please enter the title of the page:")
+    title = forms.CharField(max_length=Article.TITLE_MAX_LENGTH, help_text="Please enter the title of the article:")
+
+    summary = forms.CharField(max_length=Article.SUMMARY_MAX_LENGTH, help_text="Please enter the summary of the article:")
 
     content = forms.CharField(widget=forms.Textarea(attrs={'rows': 10, 'cols': 80}), max_length=Article.CONTENT_MAX_LENGTH, help_text="Please enter the content of the article:")
 
@@ -38,7 +42,7 @@ class ArticleForm(forms.ModelForm):
 
         model = Article
 
-        exclude = ('category',)
+        exclude = ('category', 'author',)
     
 class UserForm(forms.ModelForm):
 
@@ -54,11 +58,15 @@ class UserProfileForm(forms.ModelForm):
 
     is_editor = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
+    first_name = forms.CharField(max_length=UserProfile.NAME_MAX_LENGTH, required=True)
+
+    last_name = forms.CharField(max_length=UserProfile.NAME_MAX_LENGTH, required=True)
+
     class Meta:
 
         model = UserProfile
         
-        fields = ('website', 'profile_picture', 'is_editor',)
+        fields = ('first_name', 'last_name', 'website', 'profile_picture', 'is_editor',)
 
 class CommentForm(forms.ModelForm):
 

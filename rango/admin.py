@@ -4,12 +4,16 @@ from rango.models import Category, Article, UserProfile, Comment
 class CategoryAdmin(admin.ModelAdmin):
 
     prepopulated_fields = {'slug': ('name',)}
+
+    ordering = ['name']
     
 class ArticleAdmin(admin.ModelAdmin):
 
     prepopulated_fields = {'slug': ('title',)}
 
-    list_display = ('title', 'category', 'content', 'article_picture')
+    list_display = ('title', 'category', 'summary', 'content', 'article_picture')
+
+    ordering = ['title']
 
 class CommentAdmin(admin.ModelAdmin):
 

@@ -34,8 +34,11 @@
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:index' %}">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:about' %}">About</a></li>
-                        {% if user.is_authenticated %}
+                        {% if user.userprofile.is_editor %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:add_category' %}">Add Category</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'rango:show_stats' %}">Statistics</a></li>
+                        {% endif %}
+                        {% if user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:list_profiles' %}">Users</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:profile' user.username %}">Profile</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'auth_password_change' %}">Change Password</a></li>
@@ -64,7 +67,7 @@
                 </nav>
                 
                 <main role="main" class="col-md-9  ml-sm-auto col-lg-10 px-4">		
-                    {% block body_block %}{% endblock %}
+                    {% block body_block %}{% endblock %}<br />
                     
                     <!-- FOOTER -->
                     <footer>
@@ -80,6 +83,7 @@
         <script src="{% static 'js/jquery-3.3.1.min.js' %}" crossorigin="anonymous"></script>
         <script src="{% static 'js/rango-jquery.js' %}" crossorigin="anonymous"></script>
         <script src="{% static 'js/rango-ajax.js' %}" crossorigin="anonymous"></script>
+        <script src="{% static 'js/chart.js' %}" crossorigin="anonymous"></script>
         <script>window.jQuery || document.write('<script src="https://getbootstrap.com/docs/4.2/assets/js/vendor/jquery-slim.min.js"><\/script>')</script><script src="https://getbootstrap.com/docs/4.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-zDnhMsjVZfS3hiP7oCBRmfjkQC4fzxVxFhBx8Hkz2aZX8gEvA/jsP3eXRCvzTofP" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.9.0/feather.min.js"></script>
         <script src="https://getbootstrap.com/docs/4.2/examples/dashboard/dashboard.js"></script>

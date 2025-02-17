@@ -12,13 +12,13 @@
         <div class="container">
             <h1 class="jumbotron-heading">Home</h1>
             <div>
-                <h2 class="h2">
+                <h3 class="h3">
                 {% if user.is_authenticated %}
                     Hello, {{ user.username }}!
                 {% else %}
                     Hello! If you haven't already, please <a href="{% url 'registration_register' %}">register</a> or <a href="{% url 'auth_login' %}">login</a>.
                 {% endif %}
-                </h2>
+                </h3>
             </div>
         </div>
     </div>
@@ -34,7 +34,7 @@
                         <ul class="list-group">
                         {% for category in categories %}
                             <li class="list-group-item">
-                                <a href="{% url 'rango:show_category' category.slug %}">{{ category.name }}</a>
+                                <a href="{% url 'rango:show_category' category.slug %}">{{ category.name }}</a> ({{ category.likes }} likes)
                             </li>
                         {% endfor %}
                         </ul>
@@ -55,7 +55,7 @@
                         <ul class="list-group">
                         {% for article in articles %}
                             <li class="list-group-item">
-                                <a href="{% url 'rango:goto' %}?article_id={{ article.id }}">{{ article.title }}</a>
+                                <a href="{% url 'rango:show_article' article.category.slug article.slug %}">{{ article.title|safe }}</a>  ({{ article.views }} views)
                             </li>
                         {% endfor %}
                         </ul>

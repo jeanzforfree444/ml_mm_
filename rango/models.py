@@ -7,7 +7,11 @@ class Category(models.Model):
 
     NAME_MAX_LENGTH = 150
 
+    DESCRIPTION_MAX_LENGTH = 1000
+
     name = models.CharField(max_length=NAME_MAX_LENGTH, unique=True)
+
+    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
 
     views = models.IntegerField(default=0)
 
@@ -23,6 +27,8 @@ class Category(models.Model):
 
     class Meta:
 
+        ordering = ['name']
+
         verbose_name_plural = 'Categories'
 
     def __str__(self):
@@ -33,11 +39,15 @@ class Article(models.Model):
 
     TITLE_MAX_LENGTH = 500
 
+    SUMMARY_MAX_LENGTH = 2000
+
     CONTENT_MAX_LENGTH = 20000
 
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     title = models.CharField(max_length=TITLE_MAX_LENGTH)
+
+    summary = models.CharField(max_length=SUMMARY_MAX_LENGTH)
 
     content = models.CharField(max_length=CONTENT_MAX_LENGTH)
 
@@ -46,6 +56,8 @@ class Article(models.Model):
     views = models.IntegerField(default=0)
 
     likes = models.IntegerField(default=0)
+
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='articles', null=True, blank=True)
 
     slug = models.SlugField(unique=True)
 
@@ -61,6 +73,8 @@ class Article(models.Model):
 
     class Meta:
 
+        ordering = ['title']
+
         verbose_name_plural = 'Articles'
 
     def __str__(self):
@@ -69,7 +83,13 @@ class Article(models.Model):
     
 class UserProfile(models.Model):
 
+    NAME_MAX_LENGTH = 100
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    first_name = models.CharField(max_length=NAME_MAX_LENGTH, blank=True)
+
+    last_name = models.CharField(max_length=NAME_MAX_LENGTH, blank=True)
 
     website = models.URLField(blank=True)
 

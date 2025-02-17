@@ -1,15 +1,47 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, HttpResponseForbidden
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from rango.models import Category, Article, UserProfile, Comment
-from rango.forms import CategoryForm, ArticleForm, UserProfileForm
+from rango.forms import CategoryForm, ArticleForm, UserProfileForm, CommentForm
 from datetime import datetime
 from rango.bing_search import run_query
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.contrib import messages
+from django.utils.safestring import mark_safe
+import json
+
+BANNED_WORDS = [
+    # Profanity & Swear Words
+    "fuck", "shit", "damn", "bitch", "ass", "asshole", "bastard", "prick", "wanker",
+    "bollocks", "dick", "cunt", "twat", "arse", "arsehole",
+
+    # Sexually Explicit Terms
+    "porn", "hentai", "blowjob", "anal", "dildo", "vibrator", "cum", "orgasm",
+    "pussy", "deepthroat", "threesome", "gangbang", "incest", "sex", "shag", "fucking"
+
+    # Violent & Threatening Language
+    "kill yourself", "die", "murder you", "bomb", "terrorist", "execute",
+    "massacre", "suicide", "genocide", "kill you", "murder", "gun", "shoot", "blood"
+
+    # Hate Speech & Harassment
+    "retard", "cripple", "faggot", "dyke", "tranny", "spastic", "gimp",
+    "fag", "stupid", "idiot", "dumb",
+
+    # Drug & Substance-Related Terms
+    "weed", "cocaine", "heroin", "meth", "ecstasy", "lsd", "shrooms", 
+    "ketamine", "overdose",
+
+    # Self-Harm & Suicide References
+    "cut myself", "end my life", "overdose", "slit my wrists", "i want to die", "kill myself", "kms",
+
+    # Scam & Spam Words
+    "free money", "click here", "earn cash", "work from home", "make millions",
+    "hot singles", "win a prize"
+]
 
 class IndexView(View):
 
@@ -39,6 +71,22 @@ class AboutView(View):
 
         context_dict = {}
 
+        founder_profile = get_object_or_404(UserProfile, user__username='lee_mcq')
+        
+        context_dict['founder_profile'] = founder_profile
+
+        developer_profile = get_object_or_404(UserProfile, user__username='janebirkin4life')
+
+        context_dict['developer_profile'] = developer_profile
+
+        designer_profile = get_object_or_404(UserProfile, user__username='dolcenogabbana')
+
+        context_dict['designer_profile'] = designer_profile
+
+        marketing_profile = get_object_or_404(UserProfile, user__username='gabbriette360')
+        
+        context_dict['marketing_profile'] = marketing_profile
+
         visitor_cookie_handler(request)
 
         context_dict['visits'] = request.session['visits']
@@ -54,6 +102,10 @@ class ShowCategoryView(View):
         try:
 
             category = Category.objects.get(slug=category_name_slug)
+
+            category.views += 1
+
+            category.save()
 
             articles = Article.objects.filter(category=category).order_by('-views')
 
@@ -89,7 +141,7 @@ class ShowCategoryView(View):
             context_dict['query'] = query
         
         return render(request, 'rango/category.html', context_dict)
-    
+
 class ShowArticleView(View):
 
     def create_context_dict(self, category_name_slug, article_title_slug):
@@ -99,39 +151,71 @@ class ShowArticleView(View):
         try:
 
             category = Category.objects.get(slug=category_name_slug)
-
+            
             context_dict['category'] = category
 
             article = Article.objects.get(slug=article_title_slug)
-
+            
             context_dict['article'] = article
 
-        except Article.DoesNotExist:
+            article.views += 1
+            
+            article.save()
 
+            comments = Comment.objects.filter(article=article).order_by('-date')
+            
+            context_dict['comments'] = comments
+
+        except Article.DoesNotExist:
+            
             context_dict['article'] = None
-        
+
         return context_dict
 
     def get(self, request, category_name_slug, article_title_slug):
-
+        
         context_dict = self.create_context_dict(category_name_slug, article_title_slug)
-
+        
+        context_dict['form'] = CommentForm()
+        
         return render(request, 'rango/article.html', context_dict)
-    
+
     @method_decorator(login_required)
     def post(self, request, category_name_slug, article_title_slug):
-
+        
         context_dict = self.create_context_dict(category_name_slug, article_title_slug)
 
-        query = request.POST['query'].strip()
-
-        if query:
-
-            context_dict['result_list'] = run_query(query)
-
-            context_dict['query'] = query
+        form = CommentForm(request.POST)
         
-        return render(request, 'rango/article.html', context_dict)    
+        if form.is_valid():
+
+            content = form.cleaned_data['content']
+
+            if any(word in content.lower() for word in BANNED_WORDS):
+
+                storage = messages.get_messages(request)
+                
+                storage.used = True
+
+                messages.error(request, "Your comment contains innappropriate content and was not posted.")
+        
+            else:
+
+                comment = form.save(commit=False)
+            
+                comment.article = context_dict['article']
+            
+                comment.user = request.user
+            
+                comment.save()
+
+                messages.success(request, "Your comment as been posted successfully.")
+        
+            return redirect('rango:show_article', category_name_slug=category_name_slug, article_title_slug=article_title_slug)
+        
+        context_dict['form'] = form
+        
+        return render(request, 'rango/article.html', context_dict)
 
 class AddCategoryView(View):
 
@@ -191,7 +275,7 @@ class AddArticleView(View):
     @method_decorator(login_required)
     def post(self, request, category_name_slug):
 
-        form = ArticleForm(request.POST)
+        form = ArticleForm(request.POST, request.FILES)
 
         category = self.get_category_name(category_name_slug)
 
@@ -201,7 +285,7 @@ class AddArticleView(View):
         
         if form.is_valid():
 
-            article = form.save(commit=True)
+            article = form.save(commit=False)
 
             article.category = category
 
@@ -220,28 +304,6 @@ class AddArticleView(View):
         context_dict = {'form': form, 'category': category}
 
         return render(request, 'rango/add_article.html', context=context_dict)
-
-class GotoView(View):
-
-    def get(self, request):
-
-        article_id = request.GET.get('article_id')
-
-        try:
-
-            selected_article = Article.objects.get(id=article_id)
-
-        except Article.DoesNotExist:
-
-            return redirect(reverse('rango:index'))
-
-        selected_article.views = selected_article.views + 1
-
-        selected_article.last_visit = timezone.now()
-
-        selected_article.save()
-
-        return redirect(selected_article.url)
 
 class RegisterProfileView(View):
 
@@ -432,7 +494,11 @@ def get_category_list(max_results=0, starts_with=''):
 
     if starts_with:
 
-        category_list = Category.objects.filter(name__istartswith=starts_with)
+        category_list = Category.objects.filter(name__istartswith=starts_with).order_by('-views')
+
+    else:
+        
+        category_list = Category.objects.order_by('name')
     
     if max_results > 0:
 
@@ -454,11 +520,11 @@ class CategorySuggestionView(View):
 
             suggestion = ''
 
-        category_list = get_category_list(max_results=8, starts_with=suggestion)
+        category_list = get_category_list(max_results=5, starts_with=suggestion)
 
         if len(category_list) == 0:
 
-            category_list = Category.objects.order_by('-likes')
+            category_list = Category.objects.order_by('name')
         
         return render(request, 'rango/categories.html', {'categories': category_list})
     
@@ -473,3 +539,94 @@ class TermsView(View):
     def get(self, request):
 
         return render(request, 'rango/terms.html')
+    
+class MissionVisionView(View):
+    
+    def get(self, request):
+
+        return render(request, 'rango/mission_vision.html')
+
+class ValuesView(View):
+
+    def get(self, request):
+
+        return render(request, 'rango/values.html')
+    
+class StatsView(View):
+    
+    @method_decorator(login_required)
+    def get(self, request):
+
+        context_dict = {}
+        
+        if not request.user.userprofile.is_editor:
+
+            return redirect(reverse('rango:index'))
+        
+        total_cats = Category.objects.count()
+
+        context_dict['total_cats'] = total_cats
+        
+        total_articles = Article.objects.count()
+
+        context_dict['total_articles'] = total_articles
+
+        total_comments = Comment.objects.count()
+
+        context_dict['total_comments'] = total_comments
+
+        total_users = User.objects.count()
+
+        context_dict['total_users'] = total_users
+
+        total_likes = 0
+
+        total_views = 0
+
+        for article in Article.objects.all():
+
+            total_likes += article.likes
+
+            total_views += article.views
+
+        context_dict['total_likes'] = total_likes
+
+        context_dict['total_views'] = total_views
+
+        category_stats = {}
+        
+        category_likes = []
+        
+        category_views = []
+        
+        category_names = []
+        
+        for category in Category.objects.all():
+        
+            category_likes_sum = 0
+        
+            category_views_sum = 0
+        
+            for article in category.article_set.all():
+        
+                category_likes_sum += article.likes
+        
+                category_views_sum += article.views
+            
+            category_stats[category.name] = {'likes': category_likes_sum, 'views': category_views_sum}
+
+            category_names.append(category.name)
+        
+            category_likes.append(category_likes_sum)
+        
+            category_views.append(category_views_sum)
+
+        context_dict['category_stats'] = category_stats
+
+        context_dict['category_likes'] = mark_safe(json.dumps(category_likes))
+        
+        context_dict['category_views'] = mark_safe(json.dumps(category_views))
+        
+        context_dict['category_names'] = mark_safe(json.dumps(category_names))
+
+        return render(request, 'rango/stats.html', context_dict)

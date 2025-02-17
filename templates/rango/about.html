@@ -12,10 +12,9 @@
         <div class="container">
             <h1 class="jumbotron-heading">About Us</h1>
             <div>
-                <h2 class="h2">
+                <h3 class="h3">
                     All about the people behind <strong>my love, my mind</strong>.
-                </h2>
-            This page has been put created by our founder, <strong>Aaron Hughes</strong>.<br /><br />
+                </h3>
             
             <p>Visits: {{ visits }}</p>
             </div>
@@ -31,22 +30,36 @@
                         <p class="card-text">
                             <ul class="list-group">
                                 <li class="list-group-item">
-                                    <a href="{% url 'rango:profile' 'aaronhxx_1' %}">
-                                        <img src="{{ user_profile.profile_picture.url }}" alt="Aaron Hughes" class="img-thumbnail" width="50" height="50">
-                                        Aaron Hughes
+                                    <a href="{% url 'rango:profile' 'lee_mcq' %}">
+                                        {% if founder_profile.profile_picture %}
+                                            <img src="{{ MEDIA_URL }}{{ founder_profile.profile_picture }}" alt="{{ founder_profile.first_name }} {{ founder_profile.last_name }}" class="img-thumbnail" height="64" width="64">
+                                        {% endif %}
+                                        Alexander McQueen
                                     </a> - Founder/Editor
-                                </li>
-                                <li class="list-group-item">
-                                    <a href="{% url 'rango:profile' 'jsmith143' %}">
-                                        <img src="{{ user_profile.profile_picture.url }}" alt="John Smith" class="img-thumbnail" width="50" height="50">
-                                        John Smith
-                                    </a> - Developer
-                                </li>
+                                </li>                                
                                 <li class="list-group-item">
                                     <a href="{% url 'rango:profile' 'janebirkin4life' %}">
-                                        <img src="{{ user_profile.profile_picture.url }}" alt="Jane Doe" class="img-thumbnail" width="50" height="50">
-                                        Jane Doe
-                                    </a> - Designer
+                                        {% if developer_profile.profile_picture %}
+                                            <img src="{{ MEDIA_URL }}{{ developer_profile.profile_picture }}" alt="{{ developer_profile.first_name }} {{ developer_profile.last_name }}" class="img-thumbnail" height="64" width="64">
+                                        {% endif %}
+                                        Jane Birkin
+                                    </a> - Lead Developer
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{% url 'rango:profile' 'dolcenogabbana' %}">
+                                        {% if designer_profile.profile_picture %}
+                                        <img src="{{ MEDIA_URL }}{{ designer_profile.profile_picture }}" alt="{{ designer_profile.first_name }} {{ designer_profile.last_name }}" class="img-thumbnail" height="64" width="64">
+                                        {% endif %}
+                                        Domenico Dolce
+                                    </a> - Head Designer
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{% url 'rango:profile' 'gabbriette360' %}">
+                                        {% if marketing_profile.profile_picture %}
+                                        <img src="{{ MEDIA_URL }}{{ marketing_profile.profile_picture }}" alt="{{ marketing_profile.first_name }} {{ marketing_profile.last_name }}" class="img-thumbnail" height="64" width="64">
+                                        {% endif %}
+                                        Gabbriette Bechtel
+                                    </a> - Marketing Manager
                                 </li>
                             </ul>
                         </p>
@@ -54,5 +67,70 @@
                 </div>
             </div>
         </div>
+    </div><br />
+
+    <div>
+        <h3>Our Mission</h3>
+        <p>
+            To provide a platform for music lovers to share their thoughts and feelings about their favourite songs and artists. At our core, we believe that music is a universal language that can bring people together and through this platform, we hope to create a community of music lovers who can share their love of music with others. We also want to give back, and we will be donating a portion of our profits to music education programs in schools and artist programs to protect them from exploitation and current economic climate; helping to ensure that music remains a vital part of our culture.
+        </p>
+        
+        <h3>Our Vision</h3>
+        <p>
+            To create a community of music lovers who can share their love of music with others. This will be achieved through the creation of a platform that allows users to share their thoughts and feelings about their favourite songs and artists. We have a view, about changing the landscape of the music industry, by providing a platform for artists to share their music with the world and connect with their fans. We also want to give back, and we will be donating a portion of our profits to music education programs in schools and artist programs to protect them from exploitation and current economic climate; helping to ensure that music remains a vital part of our culture.
+        </p>
+
+        <p>
+            We have detailed our actions to help and extend our mission and vision at our partner link <a href="{% url 'rango:mission_vision' %}">My Mission, My Vision</a> page.
+        </p>
+    </div>
+
+    <div>
+        <h3>Our Values</h3>
+        <p>
+            <ul>
+                <li>Respect - for our users, our partners, and our team</li>
+                <li>Integrity - in everything we do</li>
+                <li>Passion - for music and for our community, keeping it alive</li>
+                <li>Quality - in our content and our service</li>
+                <li>Transparency - in our actions and our decisions; especially those in our mission and vision</li>
+            </ul>
+        </p>
+
+        <p>
+            You can read more about our values on our <a href="{% url 'rango:values' %}">Values</a> page.
+        </p>
+    </div>
+
+    <div>
+        <h3>Our Partners</h3>
+        <p>
+            We are proud to be partnered with the following organisations:
+            <ul>
+                <li><a href="https://www.rollingstone.com/">Rolling Stone</a></li>
+                <li><a href="https://www.billboard.com/">Billboard</a></li>
+                <li><a href="https://www.nme.com/">NME</a></li>
+                <li><a href="https://www.grammy.com/">The Grammy Awards</a></li>
+                <li><a href="https://www.riaa.com/">The Recording Industry Association of America</a></li>
+                <li><a href="https://www.bpi.co.uk/">The British Phonographic Industry</a></li>
+            </ul>
+            Their support has been invaluable in helping us to achieve our mission and vision. We are grateful for their continued support and look forward to working with them in the future.
+        </p>
+    </div>
+
+    <div>
+        <h3>Our Sponsors</h3>
+        <p>
+            We are proud to be sponsored by the following organisations:
+            <ul>
+                <li><a href="https://www.spotify.com/">Spotify</a></li>
+                <li><a href="https://www.apple.com/music/">Apple Music</a></li>
+                <li><a href="https://www.amazon.com/music/">Amazon Music</a></li>
+                <li><a href="https://www.deezer.com/">Deezer</a></li>
+                <li><a href="https://www.pandora.com/">Pandora</a></li>
+                <li><a href="https://www.soundcloud.com/">SoundCloud</a></li>
+            </ul>
+            Their support has been invaluable in helping us to achieve our mission and vision. We are grateful for the oppotunity to work with them ensuring artists and music lovers can connect and share their love of music; and continue the much needed advancements of artist rights and music education.
+        </p>
     </div>
 {% endblock %}

@@ -8,31 +8,51 @@
 {% block body_block %}
 <div class="jumbotron p-4">
     <div class="container">
+        {% if selected_user == user %}
+        <h1 class="jumbotron-heading">Your Profile</h1>
+        <div>
+            <h3 class="h3">
+                Here you can view and edit your <strong>my love, my mind</strong> profile
+            </h3>
+        </div>
+        {% else %}
         <h1 class="jumbotron-heading">{{ selected_user.username }}'s Profile</h1>
+        <div>
+            <h3 class="h3">
+                The <strong>my love, my mind</strong> profile of {{ selected_user.username }}
+            </h3>
+        </div>
+        {% endif %}
     </div>
 </div>
 
 <div class="container">
     <div class="row">
-        {% if user_profile.picture %}
-        <img src="{{ MEDIA_URL }}{{ user_profile.picture }}" height="300" alt="{{ selected_user.username }}'s profile image" />
+        {% if user_profile.profile_picture %}
+        <img src="{{ MEDIA_URL }}{{ user_profile.profile_picture }}" height="300" alt="{{ selected_user.username }}'s profile image" />
         {% else %}
         <img src="https://picsum.photos/300/300" width="300" height="300" alt="Placeholder image" />
         {% endif %}
         <br />
         <div>
             {% if selected_user == user %}
-            <form method="post" action="." enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p }}
+            <div class="container">
+                <form method="post" action="." enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
 
-                <input type="submit" value="Update" />
-            </form>
+                    <input type="submit" value="Update" />
+                </form>
+            </div>
             {% else %}
-            <p>
-                <strong>Website: </strong>
-                <a href="{{ user_profile.website }}">{{ user_profile.website }}</a>
-            </p>
+            <div class="container">
+                <p>
+                    <strong>Username: </strong>{{ user_profile.user }}<br />
+                    <strong>Name: </strong>{{ user_profile.first_name }} {{ user_profile.last_name }}<br />
+                    <strong>Website: </strong>
+                    <a href="{{ user_profile.website }}">{{ user_profile.website }}</a>
+                </p>
+            </div>
             {% endif %}
         </div>
     </div>
