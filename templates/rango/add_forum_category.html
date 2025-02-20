@@ -3,19 +3,19 @@
 {% extends 'rango/base.html' %}
 
 {% block title_block %}
-    Add a Category
+    Create a Forum
 {% endblock %}
 
 {% block body_block %}
     <div class="jumbotron p-4">
         <div class="container">
-            <h1 class="jumbotron-heading">Add a Category</h1>
+            <h1 class="jumbotron-heading">Create a Forum</h1>
         </div>
     </div>
     
     <div class="container">
         <div class="row">
-            <form role="form" id="category_form" method="post" action="{% url 'rango:add_category' %}">
+            <form role="form" id="forum_category_form" method="post" action="{% url 'rango:add_forum_category' %}">
                 {% csrf_token %}
                 {% for hidden in form.hidden_fields %}
                     {{ hidden }}
@@ -28,7 +28,7 @@
                 {% endfor %}
                     <br />
                     <button class="btn btn-primary btn-sm" type="submit" name="submit">
-                        <span data-feather="edit-3"></span> Create Category
+                        <span data-feather="edit-3"></span> Create Forum
                     </button>
             </form>
         </div>

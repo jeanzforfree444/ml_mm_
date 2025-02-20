@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Forums
+{% endblock %}
+
+{% block body_block %}
+<div class="jumbotron p-4">
+    <div class="container">
+        <h1 class="jumbotron-heading">Forums</h1>
+        <div>
+            <h3 class="h3">
+                Discuss everything music and pop culture related on <strong>my love, my mind</strong>.
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Categories</h2><br />
+    <ul class="list-group">
+        {% for category in categories %}
+            <li class="list-group-item">
+                <a href="{% url 'rango:forum_thread_list' category.slug %}">{{ category.name }}</a>
+                <p>{{ category.description }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

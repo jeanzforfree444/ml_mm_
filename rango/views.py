@@ -1,17 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from rango.models import Category, Article, UserProfile, Comment
-from rango.forms import CategoryForm, ArticleForm, UserProfileForm, CommentForm
+from rango.models import Category, Article, UserProfile, Comment, ForumCategory, Thread, Post, Poll, PollOption
+from rango.forms import CategoryForm, ArticleForm, UserProfileForm, CommentForm, ForumCategoryForm, ThreadForm, PostForm, PollForm, PollOptionForm
 from datetime import datetime
 from rango.bing_search import run_query
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.utils import timezone
 from django.contrib import messages
 from django.utils.safestring import mark_safe
+from django.forms import formset_factory
 import json
 
 BANNED_WORDS = [
@@ -60,6 +62,10 @@ class IndexView(View):
         comments = Comment.objects.order_by('-date')[:5]
 
         context_dict['comments'] = comments
+
+        threads = Thread.objects.annotate(post_count=Count('post')).order_by('-updated_at')[:5]
+        
+        context_dict['threads'] = threads
         
         visitor_cookie_handler(request)
 
@@ -209,7 +215,7 @@ class ShowArticleView(View):
             
                 comment.save()
 
-                messages.success(request, "Your comment as been posted successfully.")
+                messages.success(request, "Your comment has been posted successfully.")
         
             return redirect('rango:show_article', category_name_slug=category_name_slug, article_title_slug=article_title_slug)
         
@@ -354,21 +360,23 @@ class ProfileView(View):
         user_profile = UserProfile.objects.get_or_create(user=user)[0]
     
         form = UserProfileForm({'website': user_profile.website, 'profile_picture': user_profile.profile_picture})
+
+        articles = Article.objects.filter(author=user).select_related("category").order_by('title')
         
-        return (user, user_profile, form)
+        return (user, user_profile, form, articles)
     
     @method_decorator(login_required)
     def get(self, request, username):
 
         try:
         
-            (user, user_profile, form) = self.get_user_details(username)
+            (user, user_profile, form, articles) = self.get_user_details(username)
         
         except TypeError:
         
             return redirect(reverse('rango:index'))
         
-        context_dict = {'user_profile': user_profile, 'selected_user': user, 'form': form}
+        context_dict = {'user_profile': user_profile, 'selected_user': user, 'form': form, 'articles': articles}
         
         return render(request, 'rango/profile.html', context_dict)
     
@@ -377,7 +385,7 @@ class ProfileView(View):
 
         try:
 
-            (user, user_profile, form) = self.get_user_details(username)
+            (user, user_profile, form, articles) = self.get_user_details(username)
 
         except TypeError:
 
@@ -395,7 +403,7 @@ class ProfileView(View):
         
             print(form.errors)
         
-        context_dict = {'user_profile': user_profile, 'selected_user': user, 'form': form}
+        context_dict = {'user_profile': user_profile, 'selected_user': user, 'form': form, 'articles': articles}
         
         return render(request, 'rango/profile.html', context_dict)
 
@@ -579,6 +587,18 @@ class StatsView(View):
 
         context_dict['total_users'] = total_users
 
+        total_forums = ForumCategory.objects.count()
+
+        context_dict['total_forums'] = total_forums
+
+        total_threads = Thread.objects.count()
+
+        context_dict['total_threads'] = total_threads
+
+        total_posts = Post.objects.count()
+
+        context_dict['total_posts'] = total_posts
+ 
         total_likes = 0
 
         total_views = 0
@@ -606,14 +626,18 @@ class StatsView(View):
             category_likes_sum = 0
         
             category_views_sum = 0
+            
+            articles_sum = 0
         
             for article in category.article_set.all():
+
+                articles_sum += 1
         
                 category_likes_sum += article.likes
         
                 category_views_sum += article.views
             
-            category_stats[category.name] = {'likes': category_likes_sum, 'views': category_views_sum}
+            category_stats[category.name] = {'number': articles_sum, 'likes': category_likes_sum, 'views': category_views_sum}
 
             category_names.append(category.name)
         
@@ -630,3 +654,265 @@ class StatsView(View):
         context_dict['category_names'] = mark_safe(json.dumps(category_names))
 
         return render(request, 'rango/stats.html', context_dict)
+    
+class ForumCategoryListView(View):
+
+    def get(self, request):
+
+        context_dict = {}
+
+        categories = ForumCategory.objects.all()
+        
+        context_dict['categories'] = categories
+
+        return render(request, 'rango/forum_category_list.html', context_dict)
+    
+class AddForumCategoryView(View):
+
+    @method_decorator(login_required)
+    def get(self, request):
+
+        form = ForumCategoryForm()
+
+        return render(request, 'rango/add_forum_category.html', {'form': form})
+    
+    @method_decorator(login_required)
+    def post(self, request):
+
+        form = ForumCategoryForm(request.POST)
+
+        if form.is_valid():
+
+            form.save(commit=True)
+
+            return redirect(reverse('rango:index'))
+        
+        else:
+
+            print(form.errors)
+        
+        return render(request, 'rango/add_forum_category.html', {'form': form})
+
+class ThreadListView(View):
+
+    def get(self, request, forum_category_name_slug):
+
+        context_dict = {}
+
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+
+        context_dict['category'] = category
+
+        threads = Thread.objects.filter(category=category).order_by('-created_at')
+
+        context_dict['threads'] = threads
+
+        return render(request, 'rango/thread_list.html', context_dict)
+
+class CreateThreadView(View):
+
+    def get(self, request, forum_category_name_slug):
+        
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+        
+        form = ThreadForm()
+        
+        return render(request, 'rango/create_thread.html', {'form': form, 'category': category})
+
+    def post(self, request, forum_category_name_slug):
+        
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+        
+        form = ThreadForm(request.POST)
+
+        if form.is_valid():
+        
+            thread = form.save(commit=False)
+        
+            thread.category = category
+        
+            thread.author = request.user
+        
+            thread.save()
+        
+            return redirect('rango:forum_thread_list', forum_category_name_slug=category.slug)
+
+        return render(request, 'rango/create_thread.html', {'form': form, 'category': category})
+
+@method_decorator(login_required, name='dispatch')
+class ThreadDetailView(View):
+
+    def get(self, request, forum_category_name_slug, thread_title_slug):
+        
+        context_dict = {}
+        
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+
+        context_dict['category'] = category
+
+        thread = get_object_or_404(Thread, slug=thread_title_slug, category=category)
+
+        context_dict['thread'] = thread
+
+        posts = Post.objects.filter(thread=thread).order_by('created_at')
+
+        context_dict['posts'] = posts
+
+        poll = Poll.objects.filter(thread=thread).first()
+
+        context_dict['poll'] = poll
+
+        form = PostForm()
+
+        context_dict['form'] = form
+
+        if poll:
+
+            poll_options = poll.options.all()
+            
+            context_dict['poll_options'] = poll_options
+
+        return render(request, "rango/thread_detail.html", context_dict)
+
+    def post(self, request, forum_category_name_slug, thread_title_slug):
+
+        context_dict = {}
+
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+        
+        thread = get_object_or_404(Thread, slug=thread_title_slug, category=category)
+        
+        posts = Post.objects.filter(thread=thread).order_by('created_at')
+        
+        poll = Poll.objects.filter(thread=thread).first()
+
+        form = PostForm(request.POST)
+
+        if form.is_valid():
+        
+            post = form.save(commit=False)
+        
+            post.thread = thread
+        
+            post.author = request.user
+        
+            post.save()
+
+            thread.updated_at = timezone.now
+            thread.save()
+        
+            return redirect("rango:forum_thread_detail", forum_category_name_slug=category.slug, thread_title_slug=thread.slug)
+
+        context_dict['category'] = category
+        
+        context_dict['thread'] = thread
+
+        context_dict['posts'] = posts
+
+        context_dict['poll'] = poll
+
+        context_dict['form'] = form
+
+        return render(request, "rango/thread_detail.html", context_dict)
+
+@method_decorator(login_required, name='dispatch')
+class PollVoteView(View):
+
+    def post(self, request, forum_category_name_slug, thread_title_slug):
+
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+
+        thread = get_object_or_404(Thread, slug=thread_title_slug, category=category)
+
+        poll = get_object_or_404(Poll, thread=thread)
+
+        option_id = request.POST.get('option_id')
+
+        if option_id:
+
+            option = get_object_or_404(PollOption, id=option_id, poll=poll)
+
+            if request.user in option.voted_users.all():
+
+                return JsonResponse({'status': 'error', 'message': 'You have already voted!'}, status=400)
+
+            option.votes += 1
+            
+            option.voted_users.add(request.user)
+
+            option.save()
+
+            return JsonResponse({'status': 'success', 'votes': option.votes})
+
+        return JsonResponse({'status': 'error', 'message': 'Invalid vote'}, status=400)
+
+@method_decorator(login_required, name='dispatch')
+class AddPollView(View):
+
+    def get(self, request, forum_category_name_slug, thread_title_slug):
+
+        context_dict = {}
+
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+
+        context_dict['category'] = category
+
+        thread = get_object_or_404(Thread, slug=thread_title_slug, category=category)
+
+        context_dict['thread'] = thread
+
+        poll_form = PollForm()
+
+        context_dict['poll_form'] = poll_form
+
+        PollOptionFormSet = formset_factory(PollOptionForm, extra=3)
+
+        option_formset = PollOptionFormSet()
+
+        context_dict['option_formset'] = option_formset
+
+        return render(request, 'rango/add_poll.html', context_dict)
+
+    def post(self, request, forum_category_name_slug, thread_title_slug):
+
+        context_dict = {}
+
+        category = get_object_or_404(ForumCategory, slug=forum_category_name_slug)
+
+        context_dict['category'] = category
+
+        thread = get_object_or_404(Thread, slug=thread_title_slug)
+
+        context_dict['thread'] = thread
+
+        poll_form = PollForm(request.POST)
+
+        context_dict['poll_form'] = poll_form
+
+        PollOptionFormSet = formset_factory(PollOptionForm, extra=3)
+
+        option_formset = PollOptionFormSet(request.POST)
+
+        context_dict['option_formset'] = option_formset
+
+        if poll_form.is_valid() and option_formset.is_valid():
+        
+            poll = poll_form.save(commit=False)
+        
+            poll.thread = thread
+        
+            poll.save()
+
+            for option_form in option_formset:
+        
+                if option_form.cleaned_data.get("option_text"):
+        
+                    option = option_form.save(commit=False)
+        
+                    option.poll = poll
+        
+                    option.save()
+
+            return redirect('rango:forum_thread_detail', forum_category_name_slug=category.slug, thread_title_slug=thread.slug)
+
+        return render(request, 'rango/add_poll.html', context_dict)

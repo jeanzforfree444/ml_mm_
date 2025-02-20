@@ -43,7 +43,7 @@
         <ul>
             {% for article in articles %}
             <li>
-                <a href="{% url 'rango:show_article' category.slug article.slug %}">{{ article.title }}</a>
+                <a href="{% url 'rango:show_article' category.slug article.slug %}">{{ article.title|safe }}</a>
                 {% if article.views > 1 %}
                     ({{ article.views }} views)
                 {% elif article.views == 1 %}
@@ -54,7 +54,7 @@
         </ul>
     </div>
     {% else %}
-        No articles currently in category.<br /><br />
+        No articles currently in this category.<br /><br />
     {% endif %}
 
     {% if user.is_authenticated %}

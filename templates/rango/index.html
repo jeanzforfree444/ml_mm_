@@ -30,17 +30,17 @@
                     <div class="card-body">
                         <h2>Most Liked Categories</h2>
                         <p class="card-text">
-                        {% if categories %}
-                        <ul class="list-group">
-                        {% for category in categories %}
-                            <li class="list-group-item">
-                                <a href="{% url 'rango:show_category' category.slug %}">{{ category.name }}</a> ({{ category.likes }} likes)
-                            </li>
-                        {% endfor %}
-                        </ul>
-                        {% else %}
-                        <strong>There are no categories present.</strong>
-                        {% endif %}
+                            {% if categories %}
+                            <ul class="list-group">
+                            {% for category in categories %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'rango:show_category' category.slug %}">{{ category.name }}</a> ({{ category.likes }} likes)
+                                </li>
+                            {% endfor %}
+                            </ul>
+                            {% else %}
+                            <strong>There are no categories present.</strong>
+                            {% endif %}
                         </p>
                     </div>
                 </div>
@@ -51,17 +51,17 @@
                     <div class="card-body">
                         <h2>Most Viewed Articles</h2>
                         <p class="card-text">
-                        {% if articles %}
-                        <ul class="list-group">
-                        {% for article in articles %}
-                            <li class="list-group-item">
-                                <a href="{% url 'rango:show_article' article.category.slug article.slug %}">{{ article.title|safe }}</a>  ({{ article.views }} views)
-                            </li>
-                        {% endfor %}
-                        </ul>
-                        {% else %}
-                        <strong>There are no articles present.</strong>
-                        {% endif %}
+                            {% if articles %}
+                            <ul class="list-group">
+                            {% for article in articles %}
+                                <li class="list-group-item">
+                                    <a href="{% url 'rango:show_article' article.category.slug article.slug %}">{{ article.title|safe }}</a>  ({{ article.views }} views)
+                                </li>
+                            {% endfor %}
+                            </ul>
+                            {% else %}
+                            <strong>There are no articles present.</strong>
+                            {% endif %}
                         </p>
                     </div>
                 </div>
@@ -76,23 +76,48 @@
                     <div class="card-body">
                         <h2>Latest Comments</h2>
                         <p class="card-text">
-                        {% if comments %}
-                        <ul class="list-group">
-                        {% for comment in comments %}
-                            <li class="list-group-item">
-                                <strong>{{ comment.user.username }}:</strong> {{ comment.content }} - <a href="{% url 'rango:show_article' comment.article.category.slug comment.article.slug %}">{{ comment.article.title }}</a>
-                                <br>
-                                <small>Posted on {{ comment.date }}</small>
-                            </li>
-                        {% endfor %}
-                        </ul>
-                        {% else %}
-                        <strong>There are no comments present.</strong>
-                        {% endif %}
+                            {% if comments %}
+                            <ul class="list-group">
+                            {% for comment in comments %}
+                                <li class="list-group-item">
+                                    <strong>{{ comment.user.username }}:</strong> {{ comment.content }} - <a href="{% url 'rango:show_article' comment.article.category.slug comment.article.slug %}">{{ comment.article.title|safe }}</a>
+                                    <br>
+                                    <small>Posted on {{ comment.date }}</small>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                            {% else %}
+                            <strong>There are no comments present.</strong>
+                            {% endif %}
                         </p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-6">
+                    <div class="card-body">
+                        <h2>Trending Discussions</h2>
+                        {% if threads %}
+                            <ul class="list-group">
+                                {% for thread in threads %}
+                                    <li class="list-group-item">
+                                        <strong>{{ thread.category.name }}:</strong> <a href="{% url 'rango:forum_thread_detail' forum_category_name_slug=thread.category.slug thread_title_slug=thread.slug %}">{{ thread.title }}</a> - {{thread.post_count}} posts
+                                        <br>
+                                        <small>Updated on {{ thread.updated_at }}</small>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <strong>There are no threads present.</strong>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
  {% endblock %}

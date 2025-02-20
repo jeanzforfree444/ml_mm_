@@ -116,3 +116,105 @@ class Comment(models.Model):
     def __str__(self):
 
         return self.content
+    
+class ForumCategory(models.Model):
+
+    NAME_MAX_LENGTH = 250
+
+    DESCRIPTION_MAX_LENGTH = 2000
+    
+    name = models.CharField(max_length=NAME_MAX_LENGTH, unique=True)
+    
+    description = models.CharField(max_length=DESCRIPTION_MAX_LENGTH)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    slug = models.SlugField(unique=True)
+
+    def save(self, *args, **kwargs):
+
+        self.slug = slugify(self.name)
+
+        super(ForumCategory, self).save(*args, **kwargs)
+
+    class Meta:
+
+        verbose_name_plural = 'Forum categories'
+
+    def __str__(self):
+    
+        return self.name
+
+class Thread(models.Model):
+
+    TITLE_MAX_LENGTH = 250
+    
+    category = models.ForeignKey(ForumCategory, on_delete=models.CASCADE)
+    
+    title = models.CharField(max_length=TITLE_MAX_LENGTH)
+    
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    updated_at = models.DateTimeField(auto_now=True)
+
+    slug = models.SlugField(unique=True)
+
+    def save(self, *args, **kwargs):
+
+        self.slug = slugify(self.title)
+
+        self.updated_at = timezone.now
+
+        super(Thread, self).save(*args, **kwargs)
+
+    def __str__(self):
+    
+        return self.title
+
+class Post(models.Model):
+
+    CONTENT_MAX_LENGTH = 20000
+    
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
+    
+    author = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
+    content = models.CharField(max_length=CONTENT_MAX_LENGTH)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    likes = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+    
+        return f'Post by {self.author} on {self.thread.title}'
+
+class Poll(models.Model):
+
+    QUESTION_MAX_LENGTH = 250
+    
+    thread = models.OneToOneField(Thread, on_delete=models.CASCADE)
+    
+    question = models.CharField(max_length=QUESTION_MAX_LENGTH)
+
+    def __str__(self):
+    
+        return self.question
+
+class PollOption(models.Model):
+
+    OPTION_MAX_LENGTH = 250
+    
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="options")
+    
+    option_text = models.CharField(max_length=OPTION_MAX_LENGTH)
+    
+    votes = models.PositiveIntegerField(default=0)
+
+    voted_users = models.ManyToManyField(User, blank=True)
+
+    def __str__(self):
+    
+        return self.option_text

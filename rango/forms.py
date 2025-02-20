@@ -1,5 +1,5 @@
 from django import forms
-from rango.models import Article, Category, UserProfile, Comment
+from rango.models import Article, Category, UserProfile, Comment, ForumCategory, Thread, Post, Poll, PollOption
 from django.contrib.auth.models import User
 
 class CategoryForm(forms.ModelForm):
@@ -77,3 +77,57 @@ class CommentForm(forms.ModelForm):
         model = Comment
 
         exclude = ('article', 'user', 'date',)
+
+class ForumCategoryForm(forms.ModelForm):
+
+    name = forms.CharField(max_length=ForumCategory.NAME_MAX_LENGTH, help_text="Please enter the forum name:")
+
+    description = forms.CharField(max_length=ForumCategory.DESCRIPTION_MAX_LENGTH, help_text="Please enter the forum description:")
+
+    slug = forms.CharField(widget=forms.HiddenInput(), required=False)
+
+    class Meta:
+
+        model = ForumCategory
+
+        fields = ('name', 'description',)
+
+class ThreadForm(forms.ModelForm):
+
+    title = forms.CharField(max_length=Thread.TITLE_MAX_LENGTH, help_text="Enter the title of your thread:")
+
+    class Meta:
+
+        model = Thread
+        
+        fields = ['title']
+
+class PostForm(forms.ModelForm):
+
+    content = forms.CharField(widget=forms.Textarea(attrs={'rows': 5, 'cols': 80}), max_length=Post.CONTENT_MAX_LENGTH, help_text="Enter your post:")
+
+    class Meta:
+        
+        model = Post
+        
+        fields = ['content']
+
+class PollForm(forms.ModelForm):
+
+    question = forms.CharField(max_length=Poll.QUESTION_MAX_LENGTH, help_text="Enter the poll question:")
+
+    class Meta:
+    
+        model = Poll
+    
+        fields = ['question']
+
+class PollOptionForm(forms.ModelForm):
+
+    option_text = forms.CharField(max_length=PollOption.OPTION_MAX_LENGTH, help_text="Enter an option for the poll:")
+
+    class Meta:
+        
+        model = PollOption
+        
+        fields = ['option_text']

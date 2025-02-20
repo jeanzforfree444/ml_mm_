@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    {{ thread.title }}
+{% endblock %}
+
+{% block body_block %}
+<div class="jumbotron p-4">
+    <div class="container">
+        <h1 class="jumbotron-heading">{{ thread.title }}</h1>
+        <div>
+            <h3 class="h3">
+                Search, view, and post on this thread.
+            </h3>
+
+            <p>Started by {{ thread.author }} on {{ thread.created_at }}</p>
+            <p>Last updated on {{ thread.updated_at }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Poll Section -->
+    {% if poll %}
+        <h3>Poll: {{ poll.question }}</h3>
+        <form id="pollForm" method="post">
+            {% csrf_token %}
+            {% for option in poll_options %}
+                <div>
+                    <input type="radio" name="option_id" value="{{ option.id }}" id="option_{{ option.id }}">
+                    <label for="option_{{ option.id }}">{{ option.option_text }} ({{ option.votes }} votes)</label>
+                </div>
+            {% endfor %}
+            <br />
+            <button class="btn btn-primary btn-sm" type="submit" name="submit">
+                <span data-feather="check-square"></span> Vote
+            </button>
+        </form>
+        <hr>
+    {% endif %}
+
+    <!-- Posts Section -->
+    <h3>Discussion</h3>
+    {% if posts %}
+        <ul class="list-group">
+            {% for post in posts %}
+                <li class="list-group-item">
+                    <strong>{{ post.author }}:</strong> {{ post.content }}
+                    <br>
+                    <small>Posted on {{ post.created_at }}</small>
+                </li>
+            {% endfor %}
+        </ul><br />
+    {% else %}
+        No posts currently in this thread.<br /><br />
+    {% endif %}
+
+    <!-- Add a new post -->
+    <h3>Add a Post</h3>
+    <form method="post">
+        {% csrf_token %}
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+        {% for field in form.visible_fields %}
+            {{ field.errors }}
+            {{ field.help_text }}<br />
+            {{ field }}<br />
+            <div class="p-2"></div>
+        {% endfor %}
+            <br />
+            <button class="btn btn-primary btn-sm" type="submit" name="submit">
+                <span data-feather="edit-3"></span> Post
+            </button>
+    </form>
+</div>
+
+<!-- Poll Voting Script -->
+<script>
+    document.getElementById("pollForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        var formData = new FormData(this);
+        fetch("{% url 'rango:poll_vote' forum_category_name_slug=thread.category.slug thread_title_slug=thread.slug %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("Vote counted!");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+    });
+</script>
+
+{% endblock %}

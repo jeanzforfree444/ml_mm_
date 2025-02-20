@@ -21,4 +21,11 @@ urlpatterns = [
     path('mission_vision/', views.MissionVisionView.as_view(), name='mission_vision'),
     path('values/', views.ValuesView.as_view(), name='values'),
     path('stats/', views.StatsView.as_view(), name='show_stats'),
+    path('forum/', views.ForumCategoryListView.as_view(), name='forum_category_list'),
+    path('forum/add_forum_category/', views.AddForumCategoryView.as_view(), name='add_forum_category'),
+    path('forum/<slug:forum_category_name_slug>/', views.ThreadListView.as_view(), name='forum_thread_list'),
+    path('forum/<slug:forum_category_name_slug>/create/', views.CreateThreadView.as_view(), name='create_thread'),
+    path('forum/<slug:forum_category_name_slug>/thread/<slug:thread_title_slug>/', views.ThreadDetailView.as_view(), name='forum_thread_detail'),
+    path('forum/<slug:forum_category_name_slug>/thread/<slug:thread_title_slug>/poll/', views.PollVoteView.as_view(), name='poll_vote'),
+    path('forum/<slug:forum_category_name_slug>/thread/<slug:thread_title_slug>/add_poll/', views.AddPollView.as_view(), name='add_poll'),
 ]

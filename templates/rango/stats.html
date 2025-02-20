@@ -41,6 +41,15 @@
                             <li class="list-group-item">
                                 <strong>Total Views for All Articles:</strong> {{ total_views }}
                             </li>
+                            <li class="list-group-item">
+                                <strong>Total Forums:</strong> {{ total_forums }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Total Threads:</strong> {{ total_threads }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Total Posts:</strong> {{ total_posts }}
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -48,20 +57,32 @@
         </div>
     </div><br />
 
-    <div>
-        <h3>Categories</h3><br />
-        <ul class="list-group">
-            {% for category, stats in category_stats.items %}
-                <li class="list-group-item">
-                    <strong>{{ category }}:</strong>
-                    Likes: {{ stats.likes }} | Views: {{ stats.views }}
-                </li>
-            {% endfor %}
-        </ul>
-    </div><br />
+    <div class="container">
+        <h2>Categories</h2><br />
+        <table class="table table-striped table-bordered text-center table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Category</th>
+                    <th>Number of Articles</th>
+                    <th>Likes</th>
+                    <th>Views</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category, stats in category_stats.items %}
+                    <tr>
+                        <td><strong>{{ category }}</strong></td>
+                        <td>{{ stats.number }}</td>
+                        <td>{{ stats.likes }}</td>
+                        <td>{{ stats.views }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div><br />    
 
     <div>
-        <h3>Share of Likes and Views</h3><br />
+        <h2>Share of Likes and Views</h2><br />
         <div style="display: flex; justify-content: center; align-items: center; width: 100%; height: 600px;">
             <canvas id="categoryChart" width="600" height="600"></canvas>
         </div>        

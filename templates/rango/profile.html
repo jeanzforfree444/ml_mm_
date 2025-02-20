@@ -56,5 +56,57 @@
             {% endif %}
         </div>
     </div>
+</div><br />
+
+<div class="container">
+    <h2 class="h2">Articles by {{ user_profile.user }}</h2><br />
+
+    {% if articles %}
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+            {% for article in articles %}
+            <div class="swiper-slide">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{% url 'rango:show_article' article.category.slug article.slug %}">{{ article.title|safe }}</a>
+                        </h5>
+                        <p class="card-summary">{{ article.summary|safe }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+    </div>
+    {% else %}
+    <p>This user hasn't written any articles yet.</p>
+    {% endif %}
 </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    var swiper = new Swiper(".swiper-container", {
+        slidesPerView: 3,
+        spaceBetween: 20,
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+        breakpoints: {
+            1024: { slidesPerView: 3 },
+            768: { slidesPerView: 2 },
+            480: { slidesPerView: 1 },
+        },
+        centeredSlides: false,
+        grabCursor: true,
+        loop: false,
+    });
+});
+</script>
 {% endblock %}

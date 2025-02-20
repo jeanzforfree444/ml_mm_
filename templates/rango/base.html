@@ -20,6 +20,60 @@
     
     <!-- Custom styles for this template -->
     <link href="https://getbootstrap.com/docs/4.2/examples/dashboard/dashboard.css" rel="stylesheet">
+
+    <style>
+        /* Ensure the page doesn't shift when swiping */
+        body {
+            overflow-x: hidden;
+        }
+
+        /* Restrict the width of the swiper to fit inside the container */
+        .swiper-container {
+            max-width: 100%;
+            overflow: hidden;
+            padding-bottom: 40px; /* Prevent overlap with navigation */
+        }
+
+        /* Ensure all cards have the same height and are a bit wider */
+        .swiper-slide .card {
+            width: 340px; /* Increased width */
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Reduce the gap between slides */
+        .swiper-container .swiper-slide {
+            margin-right: 10px !important; /* Decreases gap between cards */
+        }
+
+        /* Limit summary text and add '...' when exceeding limit */
+        .card-summary {
+            height: 190px; /* Fixed height for uniformity */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 9; /* This controls how many lines are shown */
+            -webkit-box-orient: vertical;
+            white-space: normal;
+        }
+
+        /* Position and size of the navigation arrows */
+        .swiper-button-next,
+        .swiper-button-prev {
+            top: 78% !important; /* Moves arrows down */
+            transform: translateY(-50%);
+            width: 20px !important; /* Forces arrow width */
+            height: 20px !important; /* Forces arrow height */
+            /* color: #333 !important; Ensures dark grey color */
+        }
+
+        /* Controls the size of the arrow icons */
+        .swiper-button-next::after,
+        .swiper-button-prev::after {
+            font-size: 30px !important; /* Forces arrow icon size */
+        }
+    </style>        
     </head>
     
     <body>
@@ -36,9 +90,11 @@
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:about' %}">About</a></li>
                         {% if user.userprofile.is_editor %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:add_category' %}">Add Category</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'rango:add_forum_category' %}">Create Forum</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:show_stats' %}">Statistics</a></li>
                         {% endif %}
                         {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'rango:forum_category_list' %}">Forums</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:list_profiles' %}">Users</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'rango:profile' user.username %}">Profile</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'auth_password_change' %}">Change Password</a></li>

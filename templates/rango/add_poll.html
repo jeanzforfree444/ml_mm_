@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Add Poll to {{ thread.title }}
+{% endblock %}
+
+{% block body_block %}
+<div class="jumbotron p-4">
+    <div class="container">
+        <h1 class="jumbotron-heading">Add a New Poll in {{ thread.title }}</h1>
+        <div>
+            <h3 class="h3">
+                Create a new poll to allow users to vote in this thread.
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="container">    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ poll_form.question.id_for_label }}">Poll Question:</label>
+            {{ poll_form.question }}
+        </div>
+        <h4>Poll Options</h4>
+        {{ option_formset.management_form }}  
+        {% for form in option_formset %}
+            <div class="form-group">
+                {{ form.option_text.label_tag }}
+                {{ form.option_text }}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary btn-sm">
+            <span data-feather="check-square"></span> Create Poll
+        </button>
+    </form>
+
+    <br>
+    <a href="{% url 'rango:forum_thread_detail' thread.category.slug thread.slug %}">Back to Thread</a>
+</div>
+{% endblock %}

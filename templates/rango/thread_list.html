@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+{% extends 'rango/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Threads in {{ category.name }}
+{% endblock %}
+
+{% block body_block %}
+<div class="jumbotron p-4">
+    <div class="container">
+        <h1 class="jumbotron-heading">Threads in {{ category.name }}</h1>
+        <div>
+            <h3 class="h3">
+                Search, view, and post on this category.
+            </h3>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Threads</h2><br />
+    <div>
+        <a href="{% url 'rango:create_thread' category.slug %}" class="btn btn-primary btn-sm">
+            <span data-feather="edit-3"></span> Create Thread
+        </a><br /><br /><br />
+    </div>
+    <ul class="list-group">
+        {% for thread in threads %}
+            <li class="list-group-item">
+                <a href="{% url 'rango:forum_thread_detail' category.slug thread.slug %}">{{ thread.title }}</a>
+                <p>Started by {{ thread.author }} on {{ thread.created_at }}</p>
+                <p>Last updated on {{ thread.updated_at }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
